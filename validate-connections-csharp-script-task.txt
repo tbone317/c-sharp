@@ -1,0 +1,35 @@
+public void Main()
+		{
+            String ConnectionString = "";
+            String connectionName = "";
+            String packageName = (String)Dts.Variables["System::PackageName"].Value;
+            bool fireAgain = true;
+            bool fireStop = false;
+            bool success = false;
+            Dts.Events.FireInformation(1, "C# ConnectionManager Validation", "PackageName: " + packageName, "", 0, ref fireAgain);
+            foreach (ConnectionManager connectionManager in Dts.Connections)
+            {
+                ConnectionString = connectionManager.ConnectionString;
+                connectionName = connectionManager.Name.ToString();
+                Dts.Events.FireInformation(1, "Package Name: " + packageName, "", "", 0, ref fireAgain);
+                try
+                {
+                    connectionManager.AcquireConnection(null);
+                    Dts.Events.FireInformation(1, "Acquire Connection for: " + connectionManager.Name, "Connection string: " + ConnectionString, "", 0, ref fireStop);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    Dts.Events.FireError(-1, "", "Connection FAILED on " + connectionManager.Name, ex.ToString(), 0);
+                    success = false;
+                }
+            }
+            if (success)
+            {
+                Dts.TaskResult = (int)ScriptResults.Success;
+            }
+            else
+            {
+                Dts.TaskResult = (int)ScriptResults.Failure;
+            }
+		}
